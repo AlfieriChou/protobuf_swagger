@@ -1,0 +1,23 @@
+{
+  "name": "protobuf_swagger",
+  "version": "1.0.0",
+  "description": "Using protobuf to generate swagger document.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlfieriChou/protobuf_swagger.git"
+  },
+  "keywords": [
+    "protobuf",
+    "swagger"
+  ],
+  "author": "AlfieriChou",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AlfieriChou/protobuf_swagger/issues"
+  },
+  "homepage": "https://github.com/AlfieriChou/protobuf_swagger#readme"
+}
