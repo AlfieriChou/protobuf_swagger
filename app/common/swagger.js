@@ -3,22 +3,26 @@ const compile = require('protobuf-jsonschema')
 const dir = require('dir_filenames')
 const appRoot = require('app-root-path')
 
+
 async function getComponent () {
   let component = {}
   const filenames = dir(`${appRoot}/app/models`)
-  filenames.map(async (filename) => {
-    let filenameArray = filename.split('/')
-    let popFileNameArr = filenameArray.pop()
-    let filePath = path.join(`${appRoot}/app/models/` + popFileNameArr)
-    let modelName = popFileNameArr.replace(/\.\w+$/, '')
-    let schemaName = modelName.slice(0, 1).toUpperCase() + modelName.slice(1)
-    let schema = await compile(filePath, schemaName)
-    let type = schema.definitions[schemaName].type
-    let properties = schema.definitions[schemaName].properties
-    component[schemaName] = {
-      type: type,
-      properties: properties
-    }
-  })
+  let filenameArray, popFileNameArr, filePath, modelName, schemaName, schema, type, properties
+  await Promise.all(
+    filenames.map(async (filename) => {
+      filenameArray = filename.split('/')
+      popFileNameArr = filenameArray.pop()
+      filePath = path.join(`${appRoot}/app/models/` + popFileNameArr)
+      modelName = popFileNameArr.replace(/\.\w+$/, '')
+      schemaName = modelName.slice(0, 1).toUpperCase() + modelName.slice(1)
+      schema = await compile(filePath, schemaName)
+      type = schema.definitions[schemaName].type
+      properties = schema.definitions[schemaName].properties
+      component[schemaName] = {
+        type: type,
+        properties: properties
+      }
+    })
+  )
   return component
 }
