@@ -1,8 +1,8 @@
 syntax = "proto3";
 
 message Product {
-  required float id = 1;
-  required string name = 2;
-  string desc = 3;
-  float price = 4;
+  float id = 1;
+  string name = 2;
+  float price = 3;
+  string desc = 4;
 }

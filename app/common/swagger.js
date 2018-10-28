@@ -3,7 +3,6 @@ const compile = require('protobuf-jsonschema')
 const dir = require('dir_filenames')
 const appRoot = require('app-root-path')
 
-
 async function getComponent () {
   let component = {}
   const filenames = dir(`${appRoot}/app/models`)
