@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const components = require('../models')
-const Product = components.Product
+const Product = components.Product.properties
 
 module.exports = {
   index: {

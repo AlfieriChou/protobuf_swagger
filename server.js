@@ -3,7 +3,6 @@ const BodyParser = require('body-parser')
 const morgan = require('morgan')
 const engines = require('consolidate')
 const path = require('path')
-const config = require('./config')
 const common = require('./app')
 
 const app = express()
@@ -25,7 +24,7 @@ app.use((req, res, next) => {
 
 app.use('/v1/', common.router)
 
-app.listen(config.port)
-console.log(`listening on port ${config.port}`)
+app.listen(4000)
+console.log('listening on port 4000')
 
 module.exports = app

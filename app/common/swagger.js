@@ -1,27 +1,131 @@
-const path = require('path')
-const compile = require('protobuf-jsonschema')
+// const path = require('path')
+// const compile = require('protobuf-jsonschema')
+
+// async function getComponent () {
+//   let component = {}
+//   const filenames = dir(`${appRoot}/app/models`)
+//   let filenameArray, popFileNameArr, filePath, modelName, schemaName, schema, type, properties
+//   await Promise.all(
+//     filenames.map(async (filename) => {
+//       filenameArray = filename.split('/')
+//       popFileNameArr = filenameArray.pop()
+//       filePath = path.join(`${appRoot}/app/models/` + popFileNameArr)
+//       modelName = popFileNameArr.replace(/\.\w+$/, '')
+//       schemaName = modelName.slice(0, 1).toUpperCase() + modelName.slice(1)
+//       schema = await compile(filePath, schemaName)
+//       type = schema.definitions[schemaName].type
+//       properties = schema.definitions[schemaName].properties
+//       component[schemaName] = {
+//         type: type,
+//         properties: properties
+//       }
+//     })
+//   )
+//   return component
+// }
+
 const dir = require('dir_filenames')
 const appRoot = require('app-root-path')
+const _ = require('lodash')
+const component = require('../models')
 
-async function getComponent () {
-  let component = {}
-  const filenames = dir(`${appRoot}/app/models`)
-  let filenameArray, popFileNameArr, filePath, modelName, schemaName, schema, type, properties
-  await Promise.all(
-    filenames.map(async (filename) => {
-      filenameArray = filename.split('/')
-      popFileNameArr = filenameArray.pop()
-      filePath = path.join(`${appRoot}/app/models/` + popFileNameArr)
-      modelName = popFileNameArr.replace(/\.\w+$/, '')
-      schemaName = modelName.slice(0, 1).toUpperCase() + modelName.slice(1)
-      schema = await compile(filePath, schemaName)
-      type = schema.definitions[schemaName].type
-      properties = schema.definitions[schemaName].properties
-      component[schemaName] = {
-        type: type,
-        properties: properties
+const swaggerPath = (item) => {
+  const content = {
+    tags: item.tags,
+    summary: item.summary
+  }
+  if (item.query) {
+    content.parameters = []
+    for (let prop in item.query) {
+      let field = {}
+      field.name = prop
+      field.in = 'query'
+      field.description = item.query[prop].description
+      field.schema = {
+        'type': item.query[prop].type
       }
-    })
-  )
-  return component
+      field.required = false
+      content.parameters.push(field)
+    }
+  }
+  if (item.requestBody) {
+    let request = {}
+    let params = item.requestBody.body
+    request.requestBody = {}
+    let bodySchema = request.requestBody
+    bodySchema.required = true
+    bodySchema.content = {
+      'application/json': {
+        'schema': {
+          'type': params.type,
+          'properties': params.properties,
+          'required': item.requestBody.required
+        }
+      }
+    }
+    content.requestBody = request.requestBody
+  }
+  if (item.params) {
+    content.parameters = []
+    for (let prop in item.params) {
+      let field = {}
+      field.name = prop
+      field.in = 'path'
+      field.description = item.params[prop].description
+      field.schema = {
+        'type': item.params[prop].type
+      }
+      field.required = true
+      content.parameters.push(field)
+    }
+  }
+  return content
+}
+
+const generateSwagger = (info) => {
+  const items = dir(`${appRoot}/app/swagger`)
+  _.remove(items, n => {
+    return n === `${appRoot}/app/swagger/index.js`
+  })
+  let methods = []
+  let components = {}
+  components.schemas = component
+  items.map(item => {
+    let model = require(item)
+    const fileName = item.split('/').pop().replace(/\.\w+$/, '')
+    let schemaName = fileName.slice(0, 1).toUpperCase() + fileName.slice(1)
+    for (let index in model) {
+      const content = swaggerPath(model[index])
+      const schema = { $ref: `#/components/schemas/${schemaName}` }
+      content.responses = {
+        200: {
+          'description': 'response success',
+          'content': {
+            'application/json': {
+              'schema': schema
+            }
+          }
+        }
+      }
+      let swaggerMethod = {}
+      swaggerMethod[(model[index].method).toString()] = content
+      let swaggerItem = {}
+      swaggerItem[(model[index].path).toString()] = swaggerMethod
+      methods.push(swaggerItem)
+    }
+  })
+  let mergeMethod = {}
+  for (let i = 0; i < methods.length; ++i) {
+    mergeMethod = _.merge(mergeMethod, methods[i])
+  }
+  let swagger = {}
+  swagger.openapi = '3.0.0'
+  swagger.info = info
+  swagger.paths = mergeMethod
+  swagger.components = components
+  return swagger
+}
+
+module.exports = {
+  generateSwagger
 }
