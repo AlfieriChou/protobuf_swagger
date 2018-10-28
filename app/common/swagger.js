@@ -57,8 +57,8 @@ const swaggerPath = (item) => {
     bodySchema.content = {
       'application/json': {
         'schema': {
-          'type': params.type,
-          'properties': params.properties,
+          'type': 'object',
+          'properties': params,
           'required': item.requestBody.required
         }
       }
@@ -82,6 +82,50 @@ const swaggerPath = (item) => {
   return content
 }
 
+const swaggerResponse = (item) => {
+  let result = {}
+  const typeList = ['array', 'object', 'number', 'string']
+  if (typeList.indexOf(item.type) < 0) throw new Error('output type mast ba array, object, number or string!')
+  switch (item.type) {
+    case 'array':
+      const arrayResult = item.result ? item.result : { type: 'object', properties: {} }
+      result = {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: arrayResult
+        }
+      }
+      break
+    case 'object':
+      const objectResult = item.result ? item.result : { type: 'object', properties: {} }
+      result = {
+        type: 'object',
+        properties: objectResult
+      }
+      break
+    case 'number':
+      const code = { type: 'number', description: '返回标识' }
+      result = {
+        type: 'object',
+        properties: {
+          result: code
+        }
+      }
+      break
+    case 'string':
+      const stringDesc = { type: 'string', description: '返回描述' }
+      result = {
+        type: 'object',
+        properties: {
+          result: stringDesc
+        }
+      }
+      break
+  }
+  return result
+}
+
 const generateSwagger = (info) => {
   const items = dir(`${appRoot}/app/swagger`)
   _.remove(items, n => {
@@ -96,7 +140,11 @@ const generateSwagger = (info) => {
     let schemaName = fileName.slice(0, 1).toUpperCase() + fileName.slice(1)
     for (let index in model) {
       const content = swaggerPath(model[index])
-      const schema = { $ref: `#/components/schemas/${schemaName}` }
+      let result
+      if (model[index].output) {
+        result = swaggerResponse(model[index].output)
+      }
+      const schema = model[index].output ? result : { $ref: `#/components/schemas/${schemaName}` }
       content.responses = {
         200: {
           'description': 'response success',
