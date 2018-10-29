@@ -28,6 +28,23 @@ const dir = require('dir_filenames')
 const appRoot = require('app-root-path')
 const _ = require('lodash')
 const component = require('../models')
+component.ErrorModel = {
+  'type': 'object',
+  'required': [
+    'message',
+    'code'
+  ],
+  'properties': {
+    'message': {
+      'type': 'string'
+    },
+    'code': {
+      'type': 'integer',
+      'minimum': 100,
+      'maximum': 600
+    }
+  }
+}
 
 const swaggerPath = (item) => {
   const content = {
@@ -151,6 +168,16 @@ const generateSwagger = (info) => {
           'content': {
             'application/json': {
               'schema': schema
+            }
+          }
+        },
+        default: {
+          'description': 'error payload',
+          'content': {
+            'application/json': {
+              'schema': {
+                '$ref': '#/components/schemas/ErrorModel'
+              }
             }
           }
         }
