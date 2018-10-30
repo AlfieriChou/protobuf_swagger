@@ -30,10 +30,6 @@ const _ = require('lodash')
 const component = require('../models')
 component.ErrorModel = {
   'type': 'object',
-  'required': [
-    'message',
-    'code'
-  ],
   'properties': {
     'message': {
       'type': 'string'
@@ -99,7 +95,7 @@ const swaggerPath = (item) => {
   return content
 }
 
-const swaggerResponse = (item) => {
+const swaggerOutput = (item) => {
   let result = {}
   const typeList = ['array', 'object', 'number', 'string']
   if (typeList.indexOf(item.type) < 0) throw new Error('output type mast ba array, object, number or string!')
@@ -143,6 +139,29 @@ const swaggerResponse = (item) => {
   return result
 }
 
+const swaggerResponse = (schema) => {
+  return {
+    200: {
+      'description': 'response success',
+      'content': {
+        'application/json': {
+          'schema': schema
+        }
+      }
+    },
+    default: {
+      'description': 'error payload',
+      'content': {
+        'application/json': {
+          'schema': {
+            '$ref': '#/components/schemas/ErrorModel'
+          }
+        }
+      }
+    }
+  }
+}
+
 const generateSwagger = (info) => {
   const items = dir(`${appRoot}/app/swagger`)
   _.remove(items, n => {
@@ -159,29 +178,10 @@ const generateSwagger = (info) => {
       const content = swaggerPath(model[index])
       let result
       if (model[index].output) {
-        result = swaggerResponse(model[index].output)
+        result = swaggerOutput(model[index].output)
       }
       const schema = model[index].output ? result : { $ref: `#/components/schemas/${schemaName}` }
-      content.responses = {
-        200: {
-          'description': 'response success',
-          'content': {
-            'application/json': {
-              'schema': schema
-            }
-          }
-        },
-        default: {
-          'description': 'error payload',
-          'content': {
-            'application/json': {
-              'schema': {
-                '$ref': '#/components/schemas/ErrorModel'
-              }
-            }
-          }
-        }
-      }
+      content.responses = swaggerResponse(schema)
       let swaggerMethod = {}
       swaggerMethod[(model[index].method).toString()] = content
       let swaggerItem = {}
