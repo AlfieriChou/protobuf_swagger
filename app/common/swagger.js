@@ -176,10 +176,7 @@ const generateSwagger = (info) => {
     let schemaName = fileName.slice(0, 1).toUpperCase() + fileName.slice(1)
     for (let index in model) {
       const content = swaggerPath(model[index])
-      let result
-      if (model[index].output) {
-        result = swaggerOutput(model[index].output)
-      }
+      const result = model[index].output ? swaggerOutput(model[index].output) : ''
       const schema = model[index].output ? result : { $ref: `#/components/schemas/${schemaName}` }
       content.responses = swaggerResponse(schema)
       let swaggerMethod = {}
