@@ -31,7 +31,7 @@
     "jsonschema": "^1.2.4",
     "lodash": "^4.17.11",
     "morgan": "^1.9.1",
-    "mustache": "^2.3.2",
+    "mustache": "^3.0.1",
     "protobuf-jsonschema": "^1.1.1",
     "protobuf-model-schema": "0.0.4",
     "walk-sync": "^0.3.3"
